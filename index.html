@@ -472,18 +472,94 @@
         }
     });
 
-    // 表單提交通知 (前端展示用)
+    // 表單提交通知與資料傳送
     document.getElementById('echoForm').addEventListener('submit', function(e) {
         e.preventDefault();
         
-        // 檢查報名時間是否至少勾選一項
-        const dates = document.querySelectorAll('input[name="dates"]:checked');
-        if (dates.length === 0) {
+        // 1. 檢查報名時間是否至少勾選一項
+        const dateElements = document.querySelectorAll('input[name="dates"]:checked');
+        if (dateElements.length === 0) {
             alert('請至少選擇一個您可以參與實作課程的時間！');
             return;
         }
 
-        alert('感謝填寫！問卷資料已成功提交。');
+        // 2. 收集複選框資料 (上課時間)
+        let selectedDates = [];
+        dateElements.forEach(el => selectedDates.push(el.value));
+
+        // 3. 收集複選框資料 (動機)
+        let selectedMotivations = [];
+        document.querySelectorAll('input[name="motivation"]:checked').forEach(el => {
+            if (el.value === '其他') {
+                selectedMotivations.push('其他: ' + document.getElementById('mot_other_text').value);
+            } else {
+                selectedMotivations.push(el.value);
+            }
+        });
+
+        // 取得單選按鈕的值的輔助函式
+        const getRadioValue = (name) => {
+            const el = document.querySelector(`input[name="${name}"]:checked`);
+            return el ? el.value : '';
+        };
+
+        // 4. 打包所有資料
+        const formData = {
+            name: document.getElementById('name').value,
+            empId: document.getElementById('empId').value,
+            role: document.getElementById('role').value,
+            training: document.getElementById('training').value,
+            exp_pneumothorax: getRadioValue('exp_pneumothorax'),
+            exp_effusion: getRadioValue('exp_effusion'),
+            exp_pneumonia: getRadioValue('exp_pneumonia'),
+            exp_procedure: getRadioValue('exp_procedure'),
+            dates: selectedDates.join('、'), // 用頓號隔開多個日期
+            conf_probe: getRadioValue('conf_probe'),
+            conf_identify: getRadioValue('conf_identify'),
+            conf_proactive: getRadioValue('conf_proactive'),
+            conf_integrate: getRadioValue('conf_integrate'),
+            motivation: selectedMotivations.join('、'),
+            expectation: document.getElementById('expectation').value
+        };
+
+        // 更改按鈕狀態，避免重複提交
+        const submitBtn = document.querySelector('.submit-btn');
+        const originalBtnText = submitBtn.innerHTML;
+        submitBtn.innerHTML = '資料傳送中...';
+        submitBtn.disabled = true;
+
+        // ★★★ 請將下面這行網址，換成您剛剛在第二步複製的 Apps Script 網址 ★★★
+        const scriptURL = 'https://script.google.com/macros/s/AKfycby26-PChfFNqafcFZG_YZmO_UAjBvMPCNpKfseM4nuy9xdZn4O3y2Uk1U3u8mNALH4z/exec';
+
+        // 5. 透過 fetch 傳送資料到 Google Sheets
+        fetch(scriptURL, {
+            method: 'POST',
+            body: JSON.stringify(formData),
+            headers: {
+                // 使用 text/plain 避免跨網域 (CORS) 問題
+                'Content-Type': 'text/plain;charset=utf-8', 
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.result === 'success') {
+                alert('感謝填寫！報名與課前問卷已成功送出。');
+                document.getElementById('echoForm').reset(); // 清空表單
+                otherTextInput.style.display = 'none'; // 隱藏其他輸入框
+            } else {
+                alert('送出失敗，請稍後再試。');
+                console.error('Error:', data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Fetch Error!', error);
+            alert('網路連線異常，請確認網路後再試一次。');
+        })
+        .finally(() => {
+            // 恢復按鈕原本的樣子
+            submitBtn.innerHTML = originalBtnText;
+            submitBtn.disabled = false;
+        });
     });
 </script>
 
