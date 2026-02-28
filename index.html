@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chest Echo 臨床實戰課程報名與課前問卷</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/feather-icons"></script>
+    <style>
+        :root {
+            --primary: #00e5ff; /* 科技霓虹藍 */
+            --primary-hover: #00b3cc;
+            --bg-dark: #0a0f18; /* 深色科技背景 */
+            --card-bg: #111827; /* 卡片背景 */
+            --text-main: #e2e8f0;
+            --text-muted: #94a3b8;
+            --border-color: rgba(0, 229, 255, 0.2);
+            --info-bg: rgba(0, 229, 255, 0.05);
+        }
+
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            margin: 0;
+            padding: 2rem 1rem;
+            line-height: 1.6;
+            background-image: 
+                radial-gradient(circle at 15% 50%, rgba(0, 229, 255, 0.05), transparent 25%),
+                radial-gradient(circle at 85% 30%, rgba(0, 229, 255, 0.05), transparent 25%);
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .header h1 {
+            color: var(--primary);
+            font-weight: 700;
+            letter-spacing: 2px;
+            text-shadow: 0 0 15px rgba(0, 229, 255, 0.4);
+            margin-bottom: 0.5rem;
+        }
+
+        .header p {
+            color: var(--text-muted);
+            font-size: 1.1rem;
+        }
+
+        .section-card {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 2.5rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5), inset 0 0 0 1px rgba(255, 255, 255, 0.02);
+            transition: border-color 0.3s ease;
+        }
+
+        .section-card:hover {
+            border-color: rgba(0, 229, 255, 0.5);
+        }
+
+        .section-title {
+            color: var(--primary);
+            font-size: 1.5rem;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 0.75rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .info-box {
+            background-color: var(--info-bg);
+            border-left: 4px solid var(--primary);
+            padding: 1.2rem;
+            border-radius: 0 8px 8px 0;
+            margin-bottom: 1.5rem;
+            font-size: 0.95rem;
+        }
+
+        .info-box strong {
+            color: var(--primary);
+        }
+
+        .info-box ul {
+            margin: 0.5rem 0 0 0;
+            padding-left: 1.5rem;
+            color: var(--text-muted);
+        }
+
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: var(--text-main);
+        }
+
+        input[type="text"], select, textarea {
+            width: 100%;
+            padding: 0.8rem 1rem;
+            background-color: rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            color: var(--text-main);
+            font-family: inherit;
+            font-size: 1rem;
+            box-sizing: border-box;
+            transition: all 0.3s ease;
+        }
+
+        input[type="text"]:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 10px rgba(0, 229, 255, 0.2);
+        }
+
+        select option {
+            background-color: var(--card-bg);
+            color: var(--text-main);
+        }
+
+        /* 響應式表格 */
+        .table-responsive {
+            overflow-x: auto;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+        }
+
+        th, td {
+            padding: 1rem;
+            text-align: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        td:first-child, th:first-child {
+            text-align: left;
+            width: 50%;
+        }
+
+        th {
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+
+        /* 單選與複選框 */
+        input[type="radio"], input[type="checkbox"] {
+            accent-color: var(--primary);
+            width: 1.2rem;
+            height: 1.2rem;
+            cursor: pointer;
+        }
+
+        .checkbox-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.8rem;
+        }
+
+        .checkbox-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            gap: 1rem;
+            margin-top: 0.5rem;
+        }
+
+        .checkbox-label {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-weight: normal;
+            cursor: pointer;
+            padding: 0.5rem;
+            border-radius: 6px;
+            transition: background-color 0.2s;
+        }
+
+        .checkbox-label:hover {
+            background-color: rgba(0, 229, 255, 0.05);
+        }
+
+        .other-input {
+            display: none;
+            margin-top: 0.5rem;
+            margin-left: 2rem;
+            width: calc(100% - 2rem) !important;
+        }
+
+        .submit-btn {
+            width: 100%;
+            padding: 1rem;
+            background: transparent;
+            color: var(--primary);
+            border: 1px solid var(--primary);
+            border-radius: 6px;
+            font-size: 1.2rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .submit-btn:hover {
+            background: var(--primary);
+            color: var(--bg-dark);
+            box-shadow: 0 0 20px rgba(0, 229, 255, 0.4);
+        }
+
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header">
+        <h1>Chest Echo 臨床實戰課程</h1>
+        <p>報名與課前問卷系統</p>
+    </div>
+
+    <form id="echoForm">
+        <div class="section-card">
+            <div class="section-title">
+                <i data-feather="user"></i> A. 基本資料
+            </div>
+            
+            <div class="form-group">
+                <label for="name">1. 您的名字是？</label>
+                <input type="text" id="name" name="name" required placeholder="請輸入姓名">
+            </div>
+
+            <div class="form-group">
+                <label for="empId">2. 人事號？</label>
+                <input type="text" id="empId" name="empId" required placeholder="請輸入人事號">
+            </div>
+
+            <div class="form-group">
+                <label for="role">3. 您目前的身分是？</label>
+                <select id="role" name="role" required>
+                    <option value="" disabled selected>請選擇身分...</option>
+                    <option value="PGY1">PGY1</option>
+                    <option value="PGY2_IM">PGY2（內科組）</option>
+                    <option value="PGY2_Gen">PGY2（不分組）</option>
+                    <option value="R1">R1</option>
+                    <option value="R2">R2</option>
+                    <option value="R3">R3</option>
+                    <option value="Fellow">Fellow</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="training">4. 您過去是否曾接受過正式胸腔超音波訓練？</label>
+                <select id="training" name="training" required>
+                    <option value="" disabled selected>請選擇次數...</option>
+                    <option value="0">無</option>
+                    <option value="1">有，1 次</option>
+                    <option value="2-5">有，2–5 次</option>
+                    <option value=">5">有，>5 次</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>5. 您過去是否實際操作過以下項目？</label>
+                <div class="table-responsive">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>操作項目</th>
+                                <th>從未看過</th>
+                                <th>在指導下操作過</th>
+                                <th>可獨立完成</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>用 chest echo 看 pneumothorax</td>
+                                <td><input type="radio" name="exp_pneumothorax" value="never" required></td>
+                                <td><input type="radio" name="exp_pneumothorax" value="guided"></td>
+                                <td><input type="radio" name="exp_pneumothorax" value="independent"></td>
+                            </tr>
+                            <tr>
+                                <td>用 chest echo 看 pleural effusion</td>
+                                <td><input type="radio" name="exp_effusion" value="never" required></td>
+                                <td><input type="radio" name="exp_effusion" value="guided"></td>
+                                <td><input type="radio" name="exp_effusion" value="independent"></td>
+                            </tr>
+                            <tr>
+                                <td>看有無 atelectasis, pneumonia/consolidation</td>
+                                <td><input type="radio" name="exp_pneumonia" value="never" required></td>
+                                <td><input type="radio" name="exp_pneumonia" value="guided"></td>
+                                <td><input type="radio" name="exp_pneumonia" value="independent"></td>
+                            </tr>
+                            <tr>
+                                <td>Chest echo guidance 之下執行 thoracocentesis/pigtail insertion</td>
+                                <td><input type="radio" name="exp_procedure" value="never" required></td>
+                                <td><input type="radio" name="exp_procedure" value="guided"></td>
+                                <td><input type="radio" name="exp_procedure" value="independent"></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="section-card">
+            <div class="section-title">
+                <i data-feather="calendar"></i> B. 課程報名
+            </div>
+            
+            <div class="info-box">
+                <strong>📌 課程資訊</strong>
+                <ul>
+                    <li><strong>大堂課：</strong> 3/9 (一) 12:00-14:00 於國際會議廳</li>
+                    <li><strong>實作課程：</strong> 3月第二、三、四週 (每週三、四) 14:00-16:00</li>
+                    <li><strong>地點：</strong> 二樓檢查室 12號門 (每梯限額 4 名學員)</li>
+                </ul>
+            </div>
+
+            <div class="form-group">
+                <label>請點選『所有』您可以參與實作課程的時間（可複選）：</label>
+                <div class="checkbox-grid">
+                    <label class="checkbox-label">
+                        <input type="checkbox" name="dates" value="3/11"> 3/11 (三)
+                    </label>
+                    <label class="checkbox-label">
+                        <input type="checkbox" name="dates" value="3/12"> 3/12 (四)
+                    </label>
+                    <label class="checkbox-label">
+                        <input type="checkbox" name="dates" value="3/18"> 3/18 (三)
+                    </label>
+                    <label class="checkbox-label">
+                        <input type="checkbox" name="dates" value="3/19"> 3/19 (四)
+                    </label>
+                    <label class="checkbox-label">
+                        <input type="checkbox" name="dates" value="3/25"> 3/25 (三)
+                    </label>
+                    <label class="checkbox-label">
+                        <input type="checkbox" name="dates" value="3/26"> 3/26 (四)
+                    </label>
+                </div>
+            </div>
+        </div>
+
+        <div class="section-card">
+            <div class="section-title">
+                <i data-feather="activity"></i> C. 自我效能感
+            </div>
+            <p style="color: var(--text-muted); margin-bottom: 1.5rem; font-size: 0.9rem;">
+                請評估你目前的信心程度（1 = 非常沒有信心，5 = 非常有信心）
+            </p>
+            
+            <div class="table-responsive">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>評估項目</th>
+                            <th>1</th><th>2</th><th>3</th><th>4</th><th>5</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>1. 我能正確選擇適合 chest echo 的探頭</td>
+                            <td><input type="radio" name="conf_probe" value="1" required></td>
+                            <td><input type="radio" name="conf_probe" value="2"></td>
+                            <td><input type="radio" name="conf_probe" value="3"></td>
+                            <td><input type="radio" name="conf_probe" value="4"></td>
+                            <td><input type="radio" name="conf_probe" value="5"></td>
+                        </tr>
+                        <tr>
+                            <td>2. 我能辨識正常與異常影像</td>
+                            <td><input type="radio" name="conf_identify" value="1" required></td>
+                            <td><input type="radio" name="conf_identify" value="2"></td>
+                            <td><input type="radio" name="conf_identify" value="3"></td>
+                            <td><input type="radio" name="conf_identify" value="4"></td>
+                            <td><input type="radio" name="conf_identify" value="5"></td>
+                        </tr>
+                        <tr>
+                            <td>3. 我在病房會主動考慮使用 chest echo 來輔助釐清病況</td>
+                            <td><input type="radio" name="conf_proactive" value="1" required></td>
+                            <td><input type="radio" name="conf_proactive" value="2"></td>
+                            <td><input type="radio" name="conf_proactive" value="3"></td>
+                            <td><input type="radio" name="conf_proactive" value="4"></td>
+                            <td><input type="radio" name="conf_proactive" value="5"></td>
+                        </tr>
+                        <tr>
+                            <td>4. 我能將胸部超音波結果整合進臨床決策</td>
+                            <td><input type="radio" name="conf_integrate" value="1" required></td>
+                            <td><input type="radio" name="conf_integrate" value="2"></td>
+                            <td><input type="radio" name="conf_integrate" value="3"></td>
+                            <td><input type="radio" name="conf_integrate" value="4"></td>
+                            <td><input type="radio" name="conf_integrate" value="5"></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="section-card">
+            <div class="section-title">
+                <i data-feather="target"></i> D. 學習動機與期待
+            </div>
+
+            <div class="form-group">
+                <label>1. 您參加本課程的主要動機是？（可複選）</label>
+                <div class="checkbox-group">
+                    <label class="checkbox-label">
+                        <input type="checkbox" name="motivation" value="臨床判斷"> 提升臨床判斷能力
+                    </label>
+                    <label class="checkbox-label">
+                        <input type="checkbox" name="motivation" value="值班急救"> 為值班/急救做準備
+                    </label>
+                    <label class="checkbox-label">
+                        <input type="checkbox" name="motivation" value="考試評核"> 應付考試或評核
+                    </label>
+                    <label class="checkbox-label">
+                        <input type="checkbox" name="motivation" value="純粹興趣"> 純粹興趣
+                    </label>
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="mot_other" name="motivation" value="其他"> 其他
+                    </label>
+                    <input type="text" id="mot_other_text" class="other-input" placeholder="請說明其他動機...">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="expectation">2. 您最希望從本課程學到的是？</label>
+                <textarea id="expectation" name="expectation" rows="4" required placeholder="請簡述您的學習期待..."></textarea>
+            </div>
+        </div>
+
+        <button type="submit" class="submit-btn">
+            <i data-feather="send"></i> 提交報名與問卷
+        </button>
+    </form>
+</div>
+
+<script>
+    // 初始化 Feather Icons
+    feather.replace();
+
+    // 處理「其他」選項的文字輸入框顯示/隱藏
+    const otherCheckbox = document.getElementById('mot_other');
+    const otherTextInput = document.getElementById('mot_other_text');
+
+    otherCheckbox.addEventListener('change', function() {
+        if (this.checked) {
+            otherTextInput.style.display = 'block';
+            otherTextInput.setAttribute('required', 'required');
+        } else {
+            otherTextInput.style.display = 'none';
+            otherTextInput.removeAttribute('required');
+            otherTextInput.value = '';
+        }
+    });
+
+    // 表單提交通知 (前端展示用)
+    document.getElementById('echoForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        // 檢查報名時間是否至少勾選一項
+        const dates = document.querySelectorAll('input[name="dates"]:checked');
+        if (dates.length === 0) {
+            alert('請至少選擇一個您可以參與實作課程的時間！');
+            return;
+        }
+
+        alert('感謝填寫！問卷資料已成功提交。');
+    });
+</script>
+
+</body>
+</html>
