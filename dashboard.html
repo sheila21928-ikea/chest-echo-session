@@ -150,7 +150,7 @@
 <script>
     feather.replace();
 
-    // ★★★ 務必將此網址替換成您的 Apps Script 部署網址 ★★★
+    // 這裡已經換成您最新部署的專屬網址
     const scriptURL = 'https://script.google.com/macros/s/AKfycbzYjMTj5OPCD4UivrhgqnleVu8uVU2gnbGsHEUJ9CDSXURTvecCpAt1W5_eeuZbV1lH/exec';
 
     async function fetchData() {
@@ -160,7 +160,7 @@
             renderDashboard(data);
         } catch (error) {
             console.error('Error fetching data:', error);
-            document.getElementById('loader').innerText = '資料擷取失敗，請確認 Apps Script 部署網址。';
+            document.getElementById('loader').innerText = '資料擷取失敗，請確認 Apps Script 部署網址是否正確，且權限設為「所有人」。';
         }
     }
 
@@ -169,6 +169,21 @@
         document.getElementById('dashboardContent').style.display = 'block';
         document.getElementById('updateTime').innerText = '最後更新時間：' + new Date().toLocaleString();
         
+        // ★★★ 空資料防呆機制 ★★★
+        if (!data || data.length === 0) {
+            document.getElementById('dashboardContent').innerHTML = `
+                <div style="text-align: center; margin-top: 50px; color: var(--text-muted);">
+                    <i data-feather="inbox" style="width: 50px; height: 50px; margin-bottom: 20px; color: var(--primary);"></i>
+                    <h2>目前尚無報名資料</h2>
+                    <p>當有人填寫問卷後，圖表將會自動在此呈現。</p>
+                </div>
+            `;
+            feather.replace();
+            return; // 終止函式，不要往下執行畫圖表的程式碼
+        }
+
+        // --- 以下為有資料時才會執行的畫圖表程式碼 ---
+        
         // 1. 總人數
         document.getElementById('totalCount').innerText = data.length;
 
@@ -176,7 +191,7 @@
         const roleCounts = {};
         data.forEach(item => {
             const role = item["目前身分"];
-            roleCounts[role] = (roleCounts[role] || 0) + 1;
+            if (role) roleCounts[role] = (roleCounts[role] || 0) + 1;
         });
 
         new Chart(document.getElementById('roleChart'), {
@@ -195,10 +210,12 @@
         // 3. 日期熱點 (Dates)
         const dateCounts = {};
         data.forEach(item => {
-            const dates = item["可參與實作課程時間"].split('、');
-            dates.forEach(d => {
-                dateCounts[d] = (dateCounts[d] || 0) + 1;
-            });
+            if (item["可參與實作課程時間"]) {
+                const dates = item["可參與實作課程時間"].split('、');
+                dates.forEach(d => {
+                    dateCounts[d] = (dateCounts[d] || 0) + 1;
+                });
+            }
         });
 
         new Chart(document.getElementById('dateChart'), {
@@ -215,7 +232,7 @@
             },
             options: {
                 scales: {
-                    y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.1)' }, ticks: { color: '#94a3b8' } },
+                    y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.1)' }, ticks: { color: '#94a3b8', stepSize: 1 } },
                     x: { ticks: { color: '#94a3b8' } }
                 }
             }
@@ -224,8 +241,16 @@
         // 4. 信心雷達圖
         const confMetrics = ["信心度-選擇探頭", "信心度-辨識影像", "信心度-病房主動使用", "信心度-整合臨床決策"];
         const avgScores = confMetrics.map(m => {
-            const sum = data.reduce((acc, curr) => acc + parseInt(curr[m]), 0);
-            return (sum / data.length).toFixed(2);
+            let validCount = 0;
+            const sum = data.reduce((acc, curr) => {
+                const val = parseInt(curr[m]);
+                if (!isNaN(val)) {
+                    validCount++;
+                    return acc + val;
+                }
+                return acc;
+            }, 0);
+            return validCount === 0 ? 0 : (sum / validCount).toFixed(2);
         });
         
         // 更新平均信心總分
@@ -259,10 +284,9 @@
 
         // 5. 實作經驗百分比
         const expMetrics = ["經驗-Pneumothorax", "經驗-Pleural effusion", "經驗-Atelectasis/Pneumonia", "經驗-Procedure"];
-        // 這裡為了簡單化，我們統計「可獨立完成」的人數比例
         const independentCounts = expMetrics.map(m => {
             const count = data.filter(curr => curr[m] === 'independent').length;
-            return ((count / data.length) * 100).toFixed(1);
+            return data.length === 0 ? 0 : ((count / data.length) * 100).toFixed(1);
         });
 
         new Chart(document.getElementById('experienceChart'), {
