@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chest Echo 課程即時監控儀表板</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://unpkg.com/feather-icons"></script>
+    <style>
+        :root {
+            --primary: #00e5ff;
+            --bg-dark: #0a0f18;
+            --card-bg: #111827;
+            --text-main: #e2e8f0;
+            --border: rgba(0, 229, 255, 0.2);
+        }
+
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 20px;
+        }
+
+        .header h1 {
+            color: var(--primary);
+            text-shadow: 0 0 15px rgba(0, 229, 255, 0.4);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+        }
+
+        /* 頂部數據卡片 */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .stat-card .value {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin: 10px 0;
+        }
+
+        /* 圖表區塊 */
+        .chart-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+            gap: 30px;
+        }
+
+        .chart-container {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 20px;
+            min-height: 350px;
+        }
+
+        .chart-title {
+            color: var(--primary);
+            font-size: 1.2rem;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .loading {
+            text-align: center;
+            font-size: 1.5rem;
+            color: var(--primary);
+            margin-top: 100px;
+        }
+
+        @media (max-width: 600px) {
+            .chart-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header">
+        <h1><i data-feather="monitor"></i> Chest Echo 課程實況儀表板</h1>
+        <p id="updateTime">正在同步最新資料...</p>
+    </div>
+
+    <div id="loader" class="loading">正在擷取雲端數據...</div>
+
+    <div id="dashboardContent" style="display: none;">
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="chart-title"><i data-feather="users"></i> 總報名人數</div>
+                <div class="value" id="totalCount">0</div>
+            </div>
+            <div class="stat-card">
+                <div class="chart-title"><i data-feather="award"></i> 平均課前信心</div>
+                <div class="value" id="avgConfidence">0.0</div>
+            </div>
+        </div>
+
+        <div class="chart-grid">
+            <div class="chart-container">
+                <div class="chart-title"><i data-feather="pie-chart"></i> 學員身分分佈</div>
+                <canvas id="roleChart"></canvas>
+            </div>
+            <div class="chart-container">
+                <div class="chart-title"><i data-feather="calendar"></i> 實作日期熱點</div>
+                <canvas id="dateChart"></canvas>
+            </div>
+            <div class="chart-container">
+                <div class="chart-title"><i data-feather="bar-chart-2"></i> 核心技能信心雷達</div>
+                <canvas id="confidenceChart"></canvas>
+            </div>
+            <div class="chart-container">
+                <div class="chart-title"><i data-feather="layers"></i> 實作經驗分析</div>
+                <canvas id="experienceChart"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    feather.replace();
+
+    // ★★★ 務必將此網址替換成您的 Apps Script 部署網址 ★★★
+    const scriptURL = '請將您的Apps Script部署網址貼在這裡';
+
+    async function fetchData() {
+        try {
+            const response = await fetch(scriptURL);
+            const data = await response.json();
+            renderDashboard(data);
+        } catch (error) {
+            console.error('Error fetching data:', error);
+            document.getElementById('loader').innerText = '資料擷取失敗，請確認 Apps Script 部署網址。';
+        }
+    }
+
+    function renderDashboard(data) {
+        document.getElementById('loader').style.display = 'none';
+        document.getElementById('dashboardContent').style.display = 'block';
+        document.getElementById('updateTime').innerText = '最後更新時間：' + new Date().toLocaleString();
+        
+        // 1. 總人數
+        document.getElementById('totalCount').innerText = data.length;
+
+        // 2. 身分分佈 (Role)
+        const roleCounts = {};
+        data.forEach(item => {
+            const role = item["目前身分"];
+            roleCounts[role] = (roleCounts[role] || 0) + 1;
+        });
+
+        new Chart(document.getElementById('roleChart'), {
+            type: 'doughnut',
+            data: {
+                labels: Object.keys(roleCounts),
+                datasets: [{
+                    data: Object.values(roleCounts),
+                    backgroundColor: ['#00e5ff', '#00b3cc', '#bc84ee', '#ff823a', '#dcfd8b', '#94a3b8'],
+                    borderWidth: 0
+                }]
+            },
+            options: { plugins: { legend: { labels: { color: '#e2e8f0' } } } }
+        });
+
+        // 3. 日期熱點 (Dates)
+        const dateCounts = {};
+        data.forEach(item => {
+            const dates = item["可參與實作課程時間"].split('、');
+            dates.forEach(d => {
+                dateCounts[d] = (dateCounts[d] || 0) + 1;
+            });
+        });
+
+        new Chart(document.getElementById('dateChart'), {
+            type: 'bar',
+            data: {
+                labels: Object.keys(dateCounts),
+                datasets: [{
+                    label: '報名人數',
+                    data: Object.values(dateCounts),
+                    backgroundColor: 'rgba(0, 229, 255, 0.6)',
+                    borderColor: '#00e5ff',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                scales: {
+                    y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.1)' }, ticks: { color: '#94a3b8' } },
+                    x: { ticks: { color: '#94a3b8' } }
+                }
+            }
+        });
+
+        // 4. 信心雷達圖
+        const confMetrics = ["信心度-選擇探頭", "信心度-辨識影像", "信心度-病房主動使用", "信心度-整合臨床決策"];
+        const avgScores = confMetrics.map(m => {
+            const sum = data.reduce((acc, curr) => acc + parseInt(curr[m]), 0);
+            return (sum / data.length).toFixed(2);
+        });
+        
+        // 更新平均信心總分
+        const totalAvg = (avgScores.reduce((a, b) => parseFloat(a) + parseFloat(b), 0) / 4).toFixed(1);
+        document.getElementById('avgConfidence').innerText = totalAvg;
+
+        new Chart(document.getElementById('confidenceChart'), {
+            type: 'radar',
+            data: {
+                labels: ['選擇探頭', '辨識影像', '主動考慮', '決策整合'],
+                datasets: [{
+                    label: '平均分數',
+                    data: avgScores,
+                    fill: true,
+                    backgroundColor: 'rgba(188, 132, 238, 0.2)',
+                    borderColor: '#bc84ee',
+                    pointBackgroundColor: '#bc84ee',
+                }]
+            },
+            options: {
+                scales: {
+                    r: {
+                        angleLines: { color: 'rgba(255,255,255,0.1)' },
+                        grid: { color: 'rgba(255,255,255,0.1)' },
+                        pointLabels: { color: '#94a3b8' },
+                        suggestedMin: 0, suggestedMax: 5
+                    }
+                }
+            }
+        });
+
+        // 5. 實作經驗百分比
+        const expMetrics = ["經驗-Pneumothorax", "經驗-Pleural effusion", "經驗-Atelectasis/Pneumonia", "經驗-Procedure"];
+        // 這裡為了簡單化，我們統計「可獨立完成」的人數比例
+        const independentCounts = expMetrics.map(m => {
+            const count = data.filter(curr => curr[m] === 'independent').length;
+            return ((count / data.length) * 100).toFixed(1);
+        });
+
+        new Chart(document.getElementById('experienceChart'), {
+            type: 'bar',
+            data: {
+                labels: ['氣胸', '肋膜積水', '肺實變', '侵入性處置'],
+                datasets: [{
+                    label: '可獨立完成比例 (%)',
+                    data: independentCounts,
+                    backgroundColor: '#dcfd8b'
+                }]
+            },
+            options: {
+                indexAxis: 'y',
+                scales: {
+                    x: { max: 100, ticks: { color: '#94a3b8' } },
+                    y: { ticks: { color: '#94a3b8' } }
+                }
+            }
+        });
+    }
+
+    fetchData();
+</script>
+
+</body>
+</html>
