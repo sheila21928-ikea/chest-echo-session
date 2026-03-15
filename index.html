@@ -329,7 +329,7 @@
             <div class="info-box">
                 <strong>📌 課程資訊</strong>
                 <ul>
-                    <li><strong>大堂課：</strong> 3/9 (一) 12:00-14:00 於國際會議廳</li>
+                    <li><strong>大堂課：</strong> 3/11 (三) 12:00-13:30 於國際會議廳</li>
                     <li><strong>實作課程：</strong> 3月第二、三、四週 (每週三、四) 14:00-16:00</li>
                     <li><strong>地點：</strong> 二樓檢查室 12號門 (每梯限額 4 名學員)</li>
                 </ul>
@@ -475,6 +475,9 @@
     // 表單提交通知與資料傳送
     document.getElementById('echoForm').addEventListener('submit', function(e) {
         e.preventDefault();
+
+        alert('目前實作課程已額滿');
+        return;
         
         // 1. 檢查報名時間是否至少勾選一項
         const dateElements = document.querySelectorAll('input[name="dates"]:checked');
